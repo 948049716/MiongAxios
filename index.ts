@@ -48,7 +48,7 @@ export class MiongAxios {
         this.loading(true);
       }
       if (this.loadingApi[url] && !config.notThrottle) {
-        resolve('网络请求中，请稍后' as T)
+        return reject('网络请求中，请稍后' as T)
       }
       this.loadingApi[url] = true;
       this.loading(true);
