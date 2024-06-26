@@ -10,9 +10,15 @@ export class MiongAxios {
   private axiosInstance: AxiosInstance;
   private responseDataHandle: (res: any) => any;
   private loading: (isLoading: boolean) => void;
-  private loadingApi:{[k:string]:boolean}
+  private loadingApi: { [k: string]: boolean };
+  private businessCodeMap: { [k: string]: () => void };
+  private httpCodeMap: { [k: string]: () => void };
+  private businessCodeField: string;
   constructor(opt: CreateAxiosCustom) {
-    this.loadingApi = {}
+    this.businessCodeField = this.businessCodeField;
+    this.httpCodeMap = opt.httpCodeMap || {};
+    this.businessCodeMap = opt.businessCodeMap || {};
+    this.loadingApi = {};
     this.axiosInstance = axios.create(opt);
     this.responseDataHandle = opt.responseDataHandle || ((res) => res);
     this.loading = opt.loading || (() => {});
@@ -26,7 +32,7 @@ export class MiongAxios {
     url: string,
     params: any,
     otherConfig?: CustomAxiosRequestConfig
-  ):Promise<T> {
+  ): Promise<T> {
     let cancelRequest: Canceler;
     const cancelToken = new axios.CancelToken((c) => {
       cancelRequest = c;
@@ -39,7 +45,7 @@ export class MiongAxios {
       ...otherConfig,
     };
     // 处理post和get传参方式一致
-    if (["POST", "PUT"].includes(method)) {
+    if (["POST", "PUT", "put", "post"].includes(method)) {
       config.data = params;
       delete config.params;
     }
@@ -48,25 +54,28 @@ export class MiongAxios {
         this.loading(true);
       }
       if (this.loadingApi[url] && !config.notThrottle) {
-        return reject('网络请求中，请稍后' as T)
+        return reject("网络请求中，请稍后" as T);
       }
       this.loadingApi[url] = true;
       this.loading(true);
       this.axiosInstance
         .request(config)
         .then((res) => {
-          const {data} = res;
+          const { data } = res;
+          this.businessCodeMap[data[this.businessCodeField]]();
           if (config.originalRes) {
             return resolve(res as T);
           }
+
           resolve(this.responseDataHandle(data));
         })
         .catch((err) => {
-          console.log('MiongAxios_err:',err);
+          console.log("MiongAxios_err_http请求出错", err);
+          this.httpCodeMap[err.response.status]();
           reject(err);
         })
         .finally(() => {
-          delete this.loadingApi[url]
+          delete this.loadingApi[url];
           if (!config.withoutLoading) {
             this.loading(false);
           }
