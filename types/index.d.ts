@@ -2,7 +2,7 @@ import { AxiosRequestConfig, CreateAxiosDefaults } from "axios";
 
 export interface CreateAxiosCustom extends CreateAxiosDefaults {
     /**请求携带的token */
-    token: string;
+    token: string|null;
     /**相应数据的处理，默认返回响应的data */
     responseDataHandle?: (res: any) => any;
     /**接口请求时触发的loading函数 */

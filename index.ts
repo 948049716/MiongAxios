@@ -7,10 +7,10 @@ import axios, {
 import { CreateAxiosCustom, CustomAxiosRequestConfig } from "./types";
 
 export class MiongAxios {
-  axiosInstance: AxiosInstance;
-  responseDataHandle: (res: any) => any;
-  loading: (isLoading: boolean) => void;
-  loadingApi:{[k:string]:boolean}
+  private axiosInstance: AxiosInstance;
+  private responseDataHandle: (res: any) => any;
+  private loading: (isLoading: boolean) => void;
+  private loadingApi:{[k:string]:boolean}
   constructor(opt: CreateAxiosCustom) {
     this.loadingApi = {}
     this.axiosInstance = axios.create(opt);
