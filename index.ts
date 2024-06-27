@@ -11,11 +11,11 @@ export class MiongAxios {
   private responseDataHandle: (res: any) => any;
   private loading: (isLoading: boolean) => void;
   private loadingApi: { [k: string]: boolean };
-  private businessCodeMap: { [k: string]: () => void };
+  private businessCodeMap: { [k: string]: (() => void) | null | undefined };
   private httpCodeMap: { [k: string]: () => void };
   private businessCodeField: string;
   constructor(opt: CreateAxiosCustom) {
-    this.businessCodeField = this.businessCodeField;
+    this.businessCodeField = opt.businessCodeField;
     this.httpCodeMap = opt.httpCodeMap || {};
     this.businessCodeMap = opt.businessCodeMap || {};
     this.loadingApi = {};
@@ -62,7 +62,9 @@ export class MiongAxios {
         .request(config)
         .then((res) => {
           const { data } = res;
-          this.businessCodeMap[data[this.businessCodeField]]();
+          const businessCodeFn =
+            this.businessCodeMap[data[this.businessCodeField]];
+          businessCodeFn && businessCodeFn();
           if (config.originalRes) {
             return resolve(res as T);
           }
@@ -71,8 +73,12 @@ export class MiongAxios {
         })
         .catch((err) => {
           console.log("MiongAxios_err_http请求出错", err);
-          this.httpCodeMap[err.response.status]();
-          reject(err);
+          const httpCodeFn = this.httpCodeMap[err.response.status];
+          httpCodeFn && httpCodeFn();
+          if (config.originalRes) {
+            return reject(err);
+          }
+          reject(this.responseDataHandle(err));
         })
         .finally(() => {
           delete this.loadingApi[url];
