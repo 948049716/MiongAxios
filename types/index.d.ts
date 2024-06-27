@@ -4,7 +4,7 @@ export interface CreateAxiosCustom extends CreateAxiosDefaults {
   /**请求携带的token */
   token: string | null;
   /**相应数据的处理，默认返回响应的data */
-  responseDataHandle?: (res: any) => any;
+  responseDataHandle?: (data: any) => any;
 
   /**业务状态码字段名 也就是接口返回数据体中data下状态码的字段名 一般是code */
   businessCodeField: string;
@@ -13,7 +13,7 @@ export interface CreateAxiosCustom extends CreateAxiosDefaults {
   loading?: (isLoading: boolean) => void;
 
   /**业务状态码处理映射 */
-  businessCodeMap?: { [k: string]: () => void };
+  businessCodeMap?: { [k: string]: ((data:any) => void) | null | undefined };
 
   /**http状态码处理映射 */
   httpCodeMap?: { [k: string]: () => void };

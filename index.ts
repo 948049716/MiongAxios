@@ -7,18 +7,29 @@ import axios, {
 import { CreateAxiosCustom, CustomAxiosRequestConfig } from "./types";
 
 export class MiongAxios {
+  private handleError = (err: any, config?: CustomAxiosRequestConfig) => {
+    console.log("MiongAxios_err_http请求出错", err);
+    const httpCodeFn = this.httpCodeMap[err.response?.status];
+    httpCodeFn && httpCodeFn();
+    if (config?.originalRes) {
+      throw err;
+    }
+    throw this.responseDataHandle(err);
+  };
+
   private axiosInstance: AxiosInstance;
   private responseDataHandle: (res: any) => any;
   private loading: (isLoading: boolean) => void;
-  private loadingApi: { [k: string]: boolean };
-  private businessCodeMap: { [k: string]: (() => void) | null | undefined };
+  private loadingApi: { [k: string]: boolean } = {};
+  private businessCodeMap: {
+    [k: string]: ((data: any) => void) | null | undefined;
+  };
   private httpCodeMap: { [k: string]: () => void };
   private businessCodeField: string;
   constructor(opt: CreateAxiosCustom) {
     this.businessCodeField = opt.businessCodeField;
     this.httpCodeMap = opt.httpCodeMap || {};
     this.businessCodeMap = opt.businessCodeMap || {};
-    this.loadingApi = {};
     this.axiosInstance = axios.create(opt);
     this.responseDataHandle = opt.responseDataHandle || ((res) => res);
     this.loading = opt.loading || (() => {});
@@ -33,6 +44,7 @@ export class MiongAxios {
     params: any,
     otherConfig?: CustomAxiosRequestConfig
   ): Promise<T> {
+    //todo 取消请求
     let cancelRequest: Canceler;
     const cancelToken = new axios.CancelToken((c) => {
       cancelRequest = c;
@@ -64,21 +76,14 @@ export class MiongAxios {
           const { data } = res;
           const businessCodeFn =
             this.businessCodeMap[data[this.businessCodeField]];
-          businessCodeFn && businessCodeFn();
+          businessCodeFn && businessCodeFn(data);
           if (config.originalRes) {
             return resolve(res as T);
           }
-
           resolve(this.responseDataHandle(data));
         })
         .catch((err) => {
-          console.log("MiongAxios_err_http请求出错", err);
-          const httpCodeFn = this.httpCodeMap[err.response.status];
-          httpCodeFn && httpCodeFn();
-          if (config.originalRes) {
-            return reject(err);
-          }
-          reject(this.responseDataHandle(err));
+          this.handleError(err, otherConfig);
         })
         .finally(() => {
           delete this.loadingApi[url];
