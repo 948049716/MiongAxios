@@ -1,6 +1,6 @@
 {
   "name": "miong-axios",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "二次封装axios,简化使用接口书写",
   "main": "index.ts",
   "scripts": {
