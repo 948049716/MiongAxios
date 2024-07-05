@@ -3,6 +3,7 @@
   "version": "1.0.8",
   "description": "二次封装axios,简化使用接口书写",
   "main": "index.ts",
+  "types": "types/index.d.ts",
   "scripts": {
     "test": "dev"
   },

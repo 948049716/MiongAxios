@@ -6,7 +6,7 @@
 import { MiongAxios } from "axios";
 
 const request = new MiongAxios({
-  baseURL: useEnv.baseApiUrl,
+  baseURL: useEnv.baseApiUrl //你的接口域名,
   timeout: 10 * 1000,
   responseType: "json",
   headers: {
@@ -46,10 +46,19 @@ const request = new MiongAxios({
   //请求中执行函数 分别在请求开始前和请求结束后会执行，回调时传入参数 isLoading 为true时请求开始前执行，为false时请求结束后执行
   loading(isLoading) {
     if (isLoading) {
-      useMessage.loading("网络请求中");
+      useMessage.loading("网络请求中"); //可以是任何你想要做的事情
     } else {
       useMessage.hideLoading();
     }
   },
 });
+
+
+使用：
+const login = (params:object)=> request.get("/api/user/list",params)
+
+const test = async () =>{
+  const res = await login({name:"132",psd:'21321'})
+  console.log(res) //得到接口返回数据
+}
 ```
